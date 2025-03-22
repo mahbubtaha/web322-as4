@@ -1,0 +1,52 @@
+<form
+  class="main-section-form"
+  method="post"
+  action="/items/add"
+  enctype="multipart/form-data"
+>
+  <h2>Add Item</h2>
+  {{! <hr /> }}
+  <fieldset>
+    <legend>Feature Image</legend>
+    <input
+      class="form-img-btn"
+      id="featureImage"
+      name="featureImage"
+      type="file"
+    />
+  </fieldset>
+  <fieldset>
+    <legend>Post Content</legend>
+    <div class="column">
+      <label for="title">Item Name:</label>
+      <input class="form-control" id="title" name="title" type="text" />
+    </div>
+    <div class="column">
+      <label for="price">Price:</label>
+      <input class="form-control" id="price" name="price" type="text" />
+    </div>
+    <div class="column">
+      <label for="body">Description:</label>
+      <textarea class="form-control" id="body" name="body" rows="5"></textarea>
+    </div>
+
+    <div class="column">
+      <label for="category">Category:</label>
+      <select class="form-control" name="category" id="category">
+        <option value="1">Home, Garden</option>
+        <option value="2">Electronics, Computers, Video Games</option>
+        <option value="3">Clothing</option>
+        <option value="4">Sports & Outdoors</option>
+        <option value="5">Pets</option>
+      </select>
+    </div>
+    <div class="column">
+      <label for="category">Visibility:</label>
+      <div class="checkbox">
+        <input type="checkbox" name="published" id="published" />
+        <p>Published</p>
+      </div>
+    </div>
+  </fieldset>
+  <input class="form-btn" type="submit" value="Add Post" />
+</form>
