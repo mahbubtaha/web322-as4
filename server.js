@@ -34,6 +34,9 @@ const upload = multer();
 const app = express();
 const HTTP_PORT = process.env.PORT || 8080;
 
+// Add urlencoded middleware for form processing
+app.use(express.urlencoded({extended: true}));
+
 const hbs = exphbs.create({
   extname: ".hbs",
   helpers: {
@@ -60,6 +63,12 @@ const hbs = exphbs.create({
     safeHTML: function (html) {
       return new Handlebars.SafeString(html);
     },
+    formatDate: function(dateObj) {
+      let year = dateObj.getFullYear();
+      let month = (dateObj.getMonth() + 1).toString();
+      let day = dateObj.getDate().toString();
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2,'0')}`;
+    }
   },
 });
 
@@ -91,7 +100,6 @@ app.get("/about", (req, res) => {
 });
 
 // Shop route
-
 app.get("/shop/:id", async (req, res) => {
   let viewData = {};
 
@@ -106,7 +114,7 @@ app.get("/shop/:id", async (req, res) => {
       items = await storeService.getPublishedItems();
     }
 
-    items.sort((a, b) => new Date(b.itemDate) - new Date(a.itemDate));
+    items.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
 
     viewData.items = items;
   } catch (err) {
@@ -142,7 +150,7 @@ app.get("/shop", async (req, res) => {
       items = await storeService.getPublishedItems();
     }
 
-    items.sort((a, b) => new Date(b.itemDate) - new Date(a.itemDate));
+    items.sort((a, b) => new Date(b.postDate) - new Date(a.postDate));
 
     let item = items[0];
 
@@ -170,32 +178,53 @@ app.get("/items", (req, res) => {
   if (category) {
     storeService
       .getItemsByCategory(category)
-      .then((items) => res.render("items", { items: items }))
+      .then((data) => {
+        if (data.length > 0) {
+          res.render("items", { items: data });
+        } else {
+          res.render("items", { message: "no results" });
+        }
+      })
       .catch((err) => {
-        console.error(err);
-        res.render("posts", { message: "Unable to fetch items by category" });
+        res.render("items", { message: "no results" });
       });
   } else if (minDate) {
     storeService
       .getItemsByMinDate(minDate)
-      .then((items) => res.render("items", { items: items }))
+      .then((data) => {
+        if (data.length > 0) {
+          res.render("items", { items: data });
+        } else {
+          res.render("items", { message: "no results" });
+        }
+      })
       .catch((err) => {
-        console.error(err);
-        res.render("posts", { message: "Unable to fetch items by date" });
+        res.render("items", { message: "no results" });
       });
   } else {
     storeService
       .getAllItems()
-      .then((items) => res.render("items", { items: items }))
+      .then((data) => {
+        if (data.length > 0) {
+          res.render("items", { items: data });
+        } else {
+          res.render("items", { message: "no results" });
+        }
+      })
       .catch((err) => {
-        console.error(err);
-        res.render("posts", { message: "Unable to fetch items by items" });
+        res.render("items", { message: "no results" });
       });
   }
 });
 
 app.get("/items/add", (req, res) => {
-  res.render("addItem");
+  storeService.getCategories()
+    .then((data) => {
+      res.render("addItem", {categories: data});
+    })
+    .catch(() => {
+      res.render("addItem", {categories: []});
+    });
 });
 
 app.post("/items/add", upload.single("featureImage"), (req, res) => {
@@ -243,14 +272,56 @@ app.get("/items/:id", (req, res) => {
     });
 });
 
+// New route to delete an item
+app.get("/items/delete/:id", (req, res) => {
+  storeService.deletePostById(req.params.id)
+    .then(() => {
+      res.redirect("/items");
+    })
+    .catch((err) => {
+      res.status(500).send("Unable to Remove Item / Item not found");
+    });
+});
+
 // Categories routes
 app.get("/categories", (req, res) => {
   storeService
     .getCategories()
-    .then((categories) => res.render("categories", { categories: categories }))
+    .then((data) => {
+      if (data.length > 0) {
+        res.render("categories", { categories: data });
+      } else {
+        res.render("categories", { message: "no results" });
+      }
+    })
     .catch((err) => {
-      console.error(err);
-      res.render("categories", { message: "Unable to fetch categories." });
+      res.render("categories", { message: "no results" });
+    });
+});
+
+// New routes for adding categories
+app.get("/categories/add", (req, res) => {
+  res.render("addCategory");
+});
+
+app.post("/categories/add", (req, res) => {
+  storeService.addCategory(req.body)
+    .then(() => {
+      res.redirect("/categories");
+    })
+    .catch((err) => {
+      res.status(500).send("Unable to Create Category");
+    });
+});
+
+// New route to delete a category
+app.get("/categories/delete/:id", (req, res) => {
+  storeService.deleteCategoryById(req.params.id)
+    .then(() => {
+      res.redirect("/categories");
+    })
+    .catch((err) => {
+      res.status(500).send("Unable to Remove Category / Category not found");
     });
 });
 
