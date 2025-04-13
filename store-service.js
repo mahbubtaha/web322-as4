@@ -8,8 +8,7 @@ var sequelize = new Sequelize('neondb', 'neondb_owner', 'npg_ncl3oXEhW4is', {
   port: 5432,
   dialectOptions: {
     ssl: { rejectUnauthorized: false }
-  },
-  query: { raw: true }
+  }
 });
 
 // Define the Item model
