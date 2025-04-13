@@ -4,11 +4,11 @@ const Sequelize = require('sequelize');
 var sequelize = new Sequelize('neondb', 'neondb_owner', 'npg_ncl3oXEhW4is', {
   host: 'ep-misty-field-a5oa5wc5-pooler.us-east-2.aws.neon.tech',
   dialect: 'postgres',
-  dialectModule: 'pg',
   port: 5432,
   dialectOptions: {
     ssl: { rejectUnauthorized: false }
-  }
+  },
+  query: { raw: true }
 });
 
 // Define the Item model
